@@ -5,6 +5,8 @@ from TaxiFareModel.utils import compute_rmse
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.linear_model import LinearRegression
+from memoized_property import memoized_property
+import mlflow
 
 class Trainer():
     def __init__(self, X, y):
@@ -15,6 +17,9 @@ class Trainer():
         self.pipeline = None
         self.X = X
         self.y = y
+
+    MLFLOW_URI = "https://mlflow.lewagon.ai/"
+    EXPERIMENT_NAME = "[DE] [Berlin] [N1tram] taxi_fare_model_v2"
 
     def set_pipeline(self):
         """defines the pipeline as a class attribute"""
@@ -47,10 +52,27 @@ class Trainer():
         y_pred = self.pipeline.predict(X_test)
         return compute_rmse(y_pred, y_test)
 
+    @memoized_property
+    def mlflow_client(self):
+        mlflow.set_tracking_uri(MLFLOW_URI)
+        return MlflowClient()
+
+    @memoized_property
+    def mlflow_experiment_id(self):
+        try:
+            return self.mlflow_client.create_experiment(self.experiment_name)
+        except BaseException:
+            return self.mlflow_client.get_experiment_by_name(self.experiment_name).experiment_id
+
+    @memoized_property
+    def mlflow_run(self):
+        return self.mlflow_client.create_run(self.mlflow_experiment_id)
+
+    def mlflow_log_param(self, key, value):
+        self.mlflow_client.log_param(self.mlflow_run.info.run_id, key, value)
+
+    def mlflow_log_metric(self, key, value):
+        self.mlflow_client.log_metric(self.mlflow_run.info.run_id, key, value)
+
 if __name__ == "__main__":
-    df = get_data()
-    # clean data
-    # set X and y
-    # hold out
-    # train
-    # evaluate
+    trainer = Trainer()

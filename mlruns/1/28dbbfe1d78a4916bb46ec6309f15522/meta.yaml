@@ -1,0 +1,15 @@
+artifact_uri: file:///Users/martinebel/code/N1tram/TaxiFareModel/mlruns/1/28dbbfe1d78a4916bb46ec6309f15522/artifacts
+end_time: null
+entry_point_name: ''
+experiment_id: '1'
+lifecycle_stage: active
+name: ''
+run_id: 28dbbfe1d78a4916bb46ec6309f15522
+run_uuid: 28dbbfe1d78a4916bb46ec6309f15522
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1650997578373
+status: 1
+tags: []
+user_id: unknown
