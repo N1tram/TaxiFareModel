@@ -7,6 +7,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.linear_model import LinearRegression
 from memoized_property import memoized_property
 import mlflow
+from mlflow.tracking import MlflowClient
 
 class Trainer():
     def __init__(self, X, y):
@@ -17,9 +18,8 @@ class Trainer():
         self.pipeline = None
         self.X = X
         self.y = y
-
-    MLFLOW_URI = "https://mlflow.lewagon.ai/"
-    EXPERIMENT_NAME = "[DE] [Berlin] [N1tram] taxi_fare_model_v2"
+        self.MLFLOW_URI = "https://mlflow.lewagon.ai/"
+        self.experiment_name = "[DE] [Berlin] [N1tram] taxi_fare_model_v2"
 
     def set_pipeline(self):
         """defines the pipeline as a class attribute"""
@@ -54,7 +54,7 @@ class Trainer():
 
     @memoized_property
     def mlflow_client(self):
-        mlflow.set_tracking_uri(MLFLOW_URI)
+        mlflow.set_tracking_uri(self.MLFLOW_URI)
         return MlflowClient()
 
     @memoized_property
@@ -75,4 +75,16 @@ class Trainer():
         self.mlflow_client.log_metric(self.mlflow_run.info.run_id, key, value)
 
 if __name__ == "__main__":
-    trainer = Trainer()
+    from sklearn.model_selection import train_test_split
+    from TaxiFareModel.data import get_data, clean_data
+    N = 10_000
+    df = get_data(nrows=N)
+    df = clean_data(df)
+    y = df["fare_amount"]
+    X = df.drop("fare_amount", axis=1)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+    trainer = Trainer(X_train, y_train)
+    trainer.run()
+    result = trainer.evaluate(X_test, y_test)
+    trainer.mlflow_log_param('estimator','Linear Regression')
+    trainer.mlflow_log_metric('rsme', result)
