@@ -53,3 +53,24 @@ pypi_test:
 
 pypi:
 	@twine upload dist/* -u $(PYPI_USERNAME)
+
+# ----------------------------------
+#      GCP SETUP
+# ----------------------------------
+
+PROJECT_ID=wagon-bootcamp-348709
+BUCKET_NAME=wagon-data-817-ebel
+REGION=europe-west3
+
+set_project:
+	@gcloud config set project ${PROJECT_ID}
+
+create_bucket:
+	@gsutil mb -l ${REGION} -p ${PROJECT_ID} gs://${BUCKET_NAME}
+
+LOCAL_PATH="/Users/martinebel/code/N1tram/TaxiFareModel/raw_data/train_1k.csv"
+BUCKET_FOLDER=data
+BUCKET_FILE_NAME=$(shell basename ${LOCAL_PATH})
+
+upload_data:
+	@gsutil cp ${LOCAL_PATH} gs://${BUCKET_NAME}/${BUCKET_FOLDER}/${BUCKET_FILE_NAME}
